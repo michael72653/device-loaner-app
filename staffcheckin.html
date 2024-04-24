@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    
+    <base target="_top">
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Metro 4 -->
+    <link rel="stylesheet" href="//cdn.metroui.org.ua/v4/css/metro-all.min.css">
+
+    <!-- other styling scripts -->
+    <?!= IncludeFile('stylesheet') ?>
+
+  </head>
+
+  <body class="bg-dark">
+    
+    <div class="container p-4">
+
+      <div data-role="panel" data-title-caption="<?!= AppTitle(); ?>" class="text-center bg-gray">
+
+        <?!= IncludeFile('menulinks') ?>
+        
+        <div class="container d-flex flex-justify-center">
+          
+          <span class="mif-spinner3 ani-spin" id="all-spinner"></span>
+        
+        </div>
+
+        <div id="message" class="container d-flex flex-justify-center"></div>
+        
+        <!-- ADD NEW CKOUT FORM BEGINS -->
+        <form id="main-form" class="container-fluid p-4 mw-50-lg mw-100-sm">
+
+          <div data-role="panel" data-title-caption="Staff Loaner Checkin" class="text-center">
+
+            <div class="form-group w-100" id="loaner-control">
+                <button type="button" id="loaner-control" class="button p-1 border bd-black" 
+                        onclick="$('#load-loaner-nos').toggleClass('hide');">Show Loaner Nos.</button>
+            </div>
+
+            <div class="form-group w-50-md w-100-sm hide" id="load-loaner-nos">
+                <select data-role="select" data-prepend="Loaner No. :" data-filter="false" 
+                        data-add-empty-value="true" id="loaner-no" class="border bd-black" 
+                        onchange="UpdateSerialField(this.value);" /> 
+                    <?!= StaffLoanerChoices(); ?>
+                </select>
+            </div>
+
+            <div class="form-group w-75-md w-100-sm" id="load-serial-nos">
+                <input type="text" data-role="input" data-prepend="Scan Serial No. :" id="serial-no" 
+                        class="border bd-black" placeholder="Enter or Scan Serial No." aria-placeholder="Enter or Scan Serial No"  />
+            </div>
+
+            <div class="form-group">
+                  <button type="submit" id="submit" class="button success lrgsize p-4" onclick="ReturnEntry();">Submit</button>
+                  <button type="button" id="cancel" class="button primary lrgsize p-4" onclick="Reset();">Reset Form</button>
+                  <br><span class="mif-spinner3 ani-spin" id="spinner"></span>
+            </div>
+
+          </div>
+
+        </form>
+        <!-- FORM ENDS -->
+        
+        <div class="small"><?!= URLFooter(); ?></div>
+
+      </div>
+
+    </div>
+
+    <!-- Metro 4 -->
+    <script src="//cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+
+    <!-- custom script -->
+    <script src="//code.jquery.com/jquery-3.6.0.min.js" 
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" 
+            crossorigin="anonymous"></script>
+    
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js"></script>
+
+    <script type="text/javascript">
+      
+      const CheckoutApp = {}
+
+      CheckoutApp.onLoad = function(){
+
+          CheckoutApp.form = document.getElementById("main-form");
+
+          CheckoutApp.form.addEventListener("submit", CheckoutApp.onSubmit)
+
+      }; // end onload function
+
+      CheckoutApp.onSubmit = function(e){ 
+        
+          e.preventDefault();
+          
+          $('#spinner').toggleClass("active", true);
+          
+          setTimeout(function(){
+                
+                $('#spinner').toggleClass("active", false);
+                
+                setTimeout(function(){
+                      
+                      $('#loaner-no, #serial-no').removeClass("required");
+                      $('div.select-input').removeClass("required");
+                      $('#message').html("").removeClass("alert-primary alert-warning");
+
+                      /* following code may be blocked by browser */
+                      /*google.script.run.withSuccessHandler(function(url){
+                                                              window.open(url+'?page=form','_top');
+                                                            }).GetScriptURL(); */
+
+                }, 8000);
+          
+          }, 1000); 
+      
+      }; // end function
+
+      document.addEventListener("DOMContentLoaded", CheckoutApp.onLoad);
+
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+      $(document).ready(function() {
+          $('#message').html("").removeClass("alert-primary alert-warning");
+          $('#spinner, #all-spinner').toggleClass("active", false);
+          $('#serial-no').focus();
+          $('#student-id').inputmask("999999999");
+          
+          // disable the Enter/Return key to prevent submit if scanner is used
+          /*$('#main-form').bind("keypress", function(e){
+              if (e.keyCode == 13) { return false; }
+          });*/
+      });  // end ready function
+      
+      
+      function ReturnEntry() {
+
+          var serialno = document.getElementById("serial-no").value; 
+          //var loanerno = document.getElementById("loaner-no").value;
+
+          if( serialno != '' ) {
+
+              google.script.run.withSuccessHandler(function(ar) {
+
+                  console.log(ar);
+
+                  ar.forEach(function(item) {
+            
+                      if(item[0] == 'SUCCESS') {
+                        
+                          var message = item[0] + '<br>' + item[1] + ' has been entered!';
+                          $('#message').html(message).addClass("alert-primary");
+                          document.getElementById("main-form").reset();
+
+                      } else {
+                        
+                          var message = item[0] + ': Loaner is already been checked in!<br>Please try again!';
+                          $('#message').html(message).addClass("alert-warning");
+                          /* document.getElementById("main-form").reset(); */
+                      
+                      }; // end if / else
+                    
+                    }); // end foreach loop
+
+              }).AddStaffReturnEntry(serialno);
+
+          } else {
+
+              $('#loaner-no, #serial-no').addClass("required"); 
+              $('div.select-input').addClass("required");
+              
+              var message = 'Fill Out All Required Fields!';
+              $('#message').html(message).addClass("alert-warning");
+            
+          }; // end if/else
+
+      }; // end function
+
+      function UpdateSerialField(e) {
+
+          google.script.run.withSuccessHandler(function(e) {
+
+              $('#serial-no').val(e);
+            
+          }).UpdateStaffSerialNo(e);
+
+      }; // end function
+
+
+    </script>
+    
+  </body>
+
+</html>
