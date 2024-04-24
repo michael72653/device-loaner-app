@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    
+    <base target="_top">
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Metro 4 -->
+    <link rel="stylesheet" href="//cdn.metroui.org.ua/v4/css/metro-all.min.css">
+
+    <!-- other styling scripts -->
+    <?!= IncludeFile('stylesheet') ?>
+
+  </head>
+
+  <body class="bg-dark">
+    
+    <div class="container p-4">
+
+      <div data-role="panel" data-title-caption="<?!= AppTitle(); ?>" class="text-center bg-gray">
+
+        <?!= IncludeFile('menulinks') ?>
+        
+        <div class="container pl-4 pr-4 pb-4 pt-0 d-flex flex-justify-center flex-wrap">
+
+            <!-- insert buttons here -->
+
+        </div>
+
+        <div class="container d-flex flex-justify-center">
+          
+          <span class="mif-spinner3 ani-spin" id="all-spinner"></span>
+        
+        </div>
+
+        <div id="message" class="container d-flex flex-justify-center"></div>
+        
+        <!-- insert form here --> 
+
+        <!-- LIST ALL ENTRIES -->
+        <div data-role="panel" data-title-caption="Edit Payment Repair List" class="text-center">
+
+            <div class="container p-2 d-flex flex-justify-center flex-wrap">
+                <font size="-1">Add a tech ticket number to the client's profile.</font>
+            </div>
+
+            <form id="main-form" class="container-fluid p-4 mw-50-lg mw-100-sm">
+              
+                <div data-role="panel" data-title-caption="Edit Ticket No." class="text-center">
+
+                <div class="container p-1 d-flex flex-justify-center flex-wrap"><font size="-1">Note: Do Not Use Commas</font></div>
+              
+               <div class="form-group w-50-md w-100-sm">
+                    <input type="text" data-role="input" data-prepend="Student ID :" id="student-id" disabled
+                          class="border bd-black" placeholder="Enter or Scan ID" aria-placeholder="Enter or Scan ID" />
+                </div>
+
+                <div class="form-group w-75-md w-100-sm">
+                    <input type="text" data-role="input" data-prepend="Tech Ticket No :" id="ticket-no" 
+                          class="border bd-black" placeholder="Enter tech ticket no." aria-placeholder="Enter tech ticket no." />
+                </div>
+
+                <div class="form-group">
+                      <button type="submit" id="submit" class="button success lrgsize p-4" onclick="InsertTicketNo();">Submit</button>
+                      <button type="button" id="cancel" class="button primary lrgsize p-4" onclick="Reset();">Reset Form</button>
+                      <br><span class="mif-spinner3 ani-spin" id="spinner"></span>
+                </div>
+
+            </form>
+
+        </div>
+        <!-- END -->
+        
+        <div class="small"><?!= URLFooter(); ?></div>
+
+      </div>
+
+    </div>
+
+    <!-- Metro 4 -->
+    <script src="//cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+
+    <!-- custom script -->
+    <script src="//code.jquery.com/jquery-3.6.0.min.js" 
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" 
+            crossorigin="anonymous"></script>
+    
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js"></script>
+
+    <script type="text/javascript">
+      
+      const CheckoutApp = {}
+
+      CheckoutApp.onLoad = function(){
+
+          CheckoutApp.form = document.getElementById("main-form");
+
+          CheckoutApp.form.addEventListener("submit", CheckoutApp.onSubmit)
+
+      }; // end onload function
+
+      CheckoutApp.onSubmit = function(e){ 
+        
+          e.preventDefault();
+          
+          $('#spinner').toggleClass("active", true);
+          
+          setTimeout(function(){
+                
+                $('#spinner').toggleClass("active", false);
+                
+                setTimeout(function(){
+                      
+                      $('#first-name, #last-name, #student-id, #ticket-no').removeClass("required");
+                      $('div.select-input').removeClass("required");
+                      $('#message').html("").removeClass("alert-primary alert-warning");
+                      //$('#main-form').slideUp();
+
+                      /* following code may be blocked by browser */
+                      /*google.script.run.withSuccessHandler(function(url){
+                                                              window.open(url+'?page=form','_top');
+                                                            }).GetScriptURL(); */
+
+                }, 8000);
+          
+          }, 1000); 
+      
+      }; // end function
+
+      document.addEventListener("DOMContentLoaded", CheckoutApp.onLoad);
+
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+      $(document).ready(function() {
+          
+          $('#message').html("").removeClass("alert-primary alert-warning");
+          $('#spinner, #all-spinner').toggleClass("active", false);
+          $('#ticket-no').inputmask("999999");
+          
+          // disable the Enter/Return key to prevent submit if scanner is used
+          $('#main-form').bind("keypress", function(e){
+              if (e.keyCode == 13) { return false; }
+          });
+
+          // load the URL parameters into the text field on window load
+          google.script.url.getLocation(function(location) {
+              
+              document.getElementById("student-id").value = location.parameters.id[0]; // pull the "id" params from URL
+          
+          });
+          
+      });  // end ready function
+      
+      
+      function InsertTicketNo() {
+
+            $('#message').html("");
+            var student_id = document.getElementById("student-id").value;
+            var ticket_no = document.getElementById("ticket-no").value.replace(/,/g,""); // required
+            
+            if(ticket_no != '') {
+            
+                  google.script.run.withSuccessHandler(function(ar) {
+                    
+                    console.log(ar);
+                    
+                    ar.forEach(function(item) {
+                    
+                      switch(item[0]) {
+
+                          case "success":
+                              var message = 'Ticket No. '+ item[2] +'<br>has been updated for<br>Student: '+ item[1];
+                              $('#message').html(message).addClass("alert-primary");
+                              document.getElementById("main-form").reset();
+                          break;
+                      
+                          default:
+                              var message = item[0] + 'Did not update.<br>Please try again.';
+                              $('#message').html(message).addClass("alert-warning");
+                              /* document.getElementById("main-form").reset(); */
+                          break;
+                      
+                      }; // end switch
+                    
+                    }); // end foreach loop
+                  
+                  }).AddTicketNoToEntry(student_id, ticket_no);   // add to function
+            
+            } else {
+
+              $('#ticket-no').addClass("required"); 
+              
+              var message = 'Fill Out All Required Fields!';
+              $('#message').html(message).addClass("alert-warning");
+              
+            }; // end if/else
+        
+      }; // end function
+
+
+      function Reset() {
+
+          document.getElementById("main-form").reset();
+
+      }; // end function
+
+    </script>
+    
+  </body>
+
+</html>
