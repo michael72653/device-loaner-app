@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    
+    <base target="_top">
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Metro 4 -->
+    <link rel="stylesheet" href="//cdn.metroui.org.ua/v4/css/metro-all.min.css">
+
+    <!-- other styling scripts -->
+    <?!= IncludeFile('stylesheet') ?>
+
+    <!-- insert custom styling -->
+    <style type="text/css">
+      
+      .table tbody td,
+      .cellform        { font-size: 0.85rem !important; }
+
+    </style>
+  
+  </head>
+  
+  <body class="bg-dark">
+    
+    <div class="container p-4">
+
+      <div data-role="panel" data-title-caption="<?!= AppTitle(); ?>" class="text-center bg-gray">
+
+        <?!= IncludeFile('menulinks') ?>
+
+        <div class="container pl-4 pr-4 pb-4 pt-0 d-flex flex-justify-center flex-wrap">
+
+          <button type="button" class="button success lrgsize p-4 border bd-black" onclick="SortByFName();">Sort by First Name</button>
+          <button type="button" class="button success lrgsize p-4 border bd-black" onclick="SortByLName();">Sort by Last Name</button>
+          <button type="button" class="button success lrgsize p-4 border bd-black" onclick="SortByID();">Sort by ID</button>
+          <button type="button" class="button success lrgsize p-4 border bd-black" onclick="SortByDate();">Sort by Date</button>
+          <button type="button" class="button success lrgsize p-4 border bd-black" onclick="SortByLoanerNo();">Sort by Loaner</button>
+
+        </div>
+
+        <div class="container d-flex flex-justify-center">
+          
+          <span class="mif-spinner3 ani-spin" id="all-spinner"></span>
+        
+        </div>
+
+        <div id="message" class="container d-flex flex-justify-center"></div>
+        
+        <!-- FORM IS ON FORM.HTML -->
+
+        <!-- LIST ALL ENTRIES -->
+        <div data-role="panel" data-title-caption="History Logs for All Loaners" class="text-center">
+
+            <table id="main-list" class="table table-border cell-border row-hover striped p-4">
+                <?!= ListHistoryHeaders(); ?>
+                <?!= ListHistoryLogs(); ?>
+            </table>
+
+        </div>
+        <!-- END -->
+
+        <div class="small"><?!= URLFooter(); ?></div>
+
+      </div>
+
+    </div>
+
+    <!-- Metro 4 -->
+    <script src="//cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+
+    <!-- custom script -->
+    <script src="//code.jquery.com/jquery-3.6.0.min.js" 
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" 
+            crossorigin="anonymous"></script>
+    
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js"></script>
+
+    <script type="text/javascript">
+      
+      const CheckoutApp = {}
+
+      CheckoutApp.onLoad = function(){
+
+          CheckoutApp.form = document.getElementById("main-form");
+
+      }; // end onload function
+
+      document.addEventListener("DOMContentLoaded", CheckoutApp.onLoad);
+
+      ////////////////////////////////////////////////////////////////////////////////////////////////
+
+      $(document).ready(function() {
+          $('#message').html("").removeClass("alert-primary alert-warning");
+          $('#spinner, #all-spinner').toggleClass("active", false);
+          $('#main-form').hide();
+          $('#student-id').inputmask("999999999");
+      });
+      
+      
+      function SortByFName() {
+        
+        google.script.run.withSuccessHandler(function(ar) {
+            
+            console.log(ar);
+
+            $('#all-spinner').toggleClass("active", true);
+
+            setTimeout(function(){
+              google.script.run.withSuccessHandler(function(url){
+                                                    window.open(url+"?page=historylog",'_top');
+                                                  }).GetScriptURL();
+            }, 1000);
+
+        }).SortFirstNameHistory();
+      
+      }; // end function
+
+
+      function SortByLName() {
+        
+        google.script.run.withSuccessHandler(function(ar) {
+            
+            console.log(ar);
+
+            $('#all-spinner').toggleClass("active", true);
+
+            setTimeout(function(){
+              google.script.run.withSuccessHandler(function(url){
+                                                    window.open(url+"?page=historylog",'_top');
+                                                  }).GetScriptURL();
+            }, 1000);
+
+        }).SortLastNameHistory();
+
+      }; // end function
+
+
+      function SortByID() {
+        
+        google.script.run.withSuccessHandler(function(ar) {
+            
+            console.log(ar);
+
+            $('#all-spinner').toggleClass("active", true);
+
+            setTimeout(function(){
+              google.script.run.withSuccessHandler(function(url){
+                                                    window.open(url+"?page=historylog",'_top');
+                                                  }).GetScriptURL();
+            }, 1000);
+
+        }).SortToIDHistory();
+
+      }; // end function
+
+
+      function SortByDate() {
+        
+        google.script.run.withSuccessHandler(function(ar) {
+            
+            console.log(ar);
+
+            $('#all-spinner').toggleClass("active", true);
+
+            setTimeout(function(){
+              google.script.run.withSuccessHandler(function(url){
+                                                    window.open(url+"?page=historylog",'_top');
+                                                  }).GetScriptURL();
+            }, 1000);
+
+        }).SortToDateHistory();
+
+      }; // end function
+
+
+      function SortByLoanerNo() {
+        
+        google.script.run.withSuccessHandler(function(ar) {
+            
+            console.log(ar);
+
+            $('#all-spinner').toggleClass("active", true);
+
+            setTimeout(function(){
+              google.script.run.withSuccessHandler(function(url){
+                                                    window.open(url+"?page=historylog",'_top');
+                                                  }).GetScriptURL();
+            }, 1000);
+
+        }).SortToLoanerHistory();
+
+      }; // end function
+
+
+      function ReloadPage() {
+
+          $('#all-spinner').toggleClass("active", true);
+
+          setTimeout(function(){
+            google.script.run.withSuccessHandler(function(url){
+                                                  window.open(url+"?page=historylog",'_top');
+                                                }).GetScriptURL();
+          }, 1000);
+
+      }; // end function 
+
+    </script>
+    
+  </body>
+
+</html>
